@@ -9,33 +9,32 @@
   tags:
     - user
 
-- name: Run as vpn user
-  block:
+- name: Start vpn container
+  docker_container:
+    name: '{{ VPNS_CONTAINER_NAME }}'
+    image: '{{ VPNS_IMAGE }}'
+    restart_policy: always
+    ports:
+      - 500:500/udp
+      - 4500:4500/udp
+    privileged: yes
+    log_driver: json-file
+    log_options:
+      max-size: '1g'
+      max-file: '2'
+    env:
+      VPN_IPSEC_PSK: '{{ VPNS_PSK }}'
+      VPN_USER: '{{ VPNS_MAIN_USER }}'
+      VPN_PASSWORD: '{{ VPNS_MAIN_PASSWORD }}'
 
-    - name: Make directories
-      file:
-        state: directory
-        path: '{{ item }}'
-      loop:
-        - '{{ VPNS_PP_CONFIG }}'
-
-    - name: Start vpn container
-      docker_container:
-        name: '{{ VPNS_CONTAINER_NAME }}'
-        image: '{{ VPNS_IMAGE }}'
-        restart_policy: always
-        ports:
-          - 500:500/udp
-          - 4500:4500/udp
-        privileged: yes
-        log_driver: json-file
-        log_options:
-          max-size: '1g'
-          max-file: '2'
-        env:
-          VPN_IPSEC_PSK: '{{ VPNS_PSK }}'
-          VPN_USER: '{{ VPNS_MAIN_USER }}'
-          VPN_PASSWORD: '{{ VPNS_MAIN_PASSWORD }}'
-
-  become: yes
-  become_user: "{{ VPNS_USER }}"
+- name: Open ports
+  iptables:
+    chain: INPUT
+    protocol: udp
+    destination_port: '{{ item }}'
+    ctstate: NEW
+    jump: ACCEPT
+    comment: Accept new vpn connections
+  loop:
+    - 500
+    - 4500
