@@ -1,0 +1,3 @@
+VPNS_IMAGE: hwdsl2/ipsec-vpn-server:latest
+VPNS_CONTAINER_NAME: vpn-server
+VPNS_USER: vpn-server

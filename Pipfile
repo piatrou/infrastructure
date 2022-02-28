@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+ansible-core = "*"
+
+[dev-packages]
+molecule = "*"
+molecule-vagrant = "*"
+
+[requires]
+python_version = "3.8"
+
+[scripts]
+prepare = "ansible-galaxy install -r requirements.yml"
+ping = "ansible -i inventories/${INVENTORY} all -m ping"
+firstboot = "ansible-playbook -i inventories/${INVENTORY} playbooks/firstboot.yml"
+common = "ansible-playbook -i inventories/${INVENTORY} playbooks/common.yml"
+vpn-servers = "ansible-playbook -i inventories/${INVENTORY} playbooks/vpn-servers.yml"

@@ -1,0 +1,10 @@
+- name: Install vpn servers
+  hosts: vpn-servers
+  become: yes
+  gather_facts: yes
+  tasks:
+
+    - include_role:
+        name: vpn-server
+      tags:
+        - always

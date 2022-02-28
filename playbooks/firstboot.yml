@@ -1,0 +1,15 @@
+- name: Playbook to initial server configuration
+  hosts: all
+  become: yes
+  gather_facts: no
+  pre_tasks:
+    - set_fact:
+        ansible_port: 22
+        ansible_user: "{{ PREPARE_USER if PREPARE_USER is defined else 'root' }}"
+  tasks:
+    - name: Gathering facts
+      setup:
+    - include_role:
+        name: common
+      tags:
+        - always

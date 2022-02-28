@@ -1,0 +1,109 @@
+---
+- name: Timezone is {{ COMMON_TIMEZONE }}
+  community.general.timezone:
+    name: "{{ COMMON_TIMEZONE }}"
+  tags:
+    - timezone
+
+- name: apt-get repo and cache updated
+  apt:
+    update_cache: yes
+  tags:
+    - packages
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Common package installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ COMMON_PACKETS + COMMON_DEB_PACKETS }}"
+  tags:
+    - packages
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: yum repo and cache updated
+  yum:
+    update_cache: yes
+  tags:
+    - packages
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Common package installed
+  yum:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ COMMON_PACKETS + COMMON_RPM_PACKETS }}"
+  tags:
+    - packages
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Common python packages installed
+  pip:
+    name: '{{ COMMON_PYTHON_PACKETS }}'
+  tags:
+    - packages
+
+- name: Admin group added to sudoers
+  lineinfile:
+    line: "%admin ALL=(ALL) NOPASSWD:ALL"
+    path: /etc/sudoers
+  tags:
+    - user
+
+- name: Ansible user created
+  include_role:
+    name: piatrou.user
+  vars:
+    user_name: "{{ COMMON_ANSIBLE_USER }}"
+    user_group:
+      additional:
+        - admin
+    keys: "{{ COMMON_ADMINS_KEYS }}"
+  tags:
+    - user
+
+- name: SSH config copied
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+    validate: /usr/sbin/sshd -t -f %s
+    backup: yes
+  notify:
+    - restart sshd
+  tags:
+    - conf
+    - ssh
+
+- name: Allow related and established connections
+  iptables:
+    chain: INPUT
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+  become: yes
+  tags:
+    - network
+    - firewall
+
+- name: Allow new incoming SYN packets on TCP ssh port
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ COMMON_SSH_PORT }}"
+    ctstate: NEW
+    syn: match
+    jump: ACCEPT
+    comment: Accept new SSH connections.
+  tags:
+    - network
+    - firewall
+
+- name: Set the policy for the INPUT chain to DROP
+  iptables:
+    chain: INPUT
+    policy: DROP
+  tags:
+    - network
+    - firewall

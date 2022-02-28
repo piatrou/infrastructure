@@ -1,0 +1,38 @@
+---
+COMMON_TIMEZONE: Europe/Minsk
+COMMON_PACKETS:
+  - sudo
+  - vim
+  - psmisc
+  - iftop
+  - htop
+  - ntp
+  - gcc
+  - git
+  - screen
+  - pwgen
+  - clang
+  - iptables
+
+COMMON_DEB_PACKETS:
+  - virtualenv
+  - pipenv
+  - g++
+  - python3-dev
+  - python3-docker
+  - python3-pip
+
+COMMON_RPM_PACKETS:
+  - epel-release
+  - python36
+  - python3-devel
+  - python36-virtualenv
+  - python36-docker
+  - gcc-c++
+
+COMMON_PYTHON_PACKETS:
+  - docker
+
+COMMON_SSH_PORT: 22
+COMMON_ANSIBLE_USER: ansible
+COMMON_ADMINS_KEYS: null
